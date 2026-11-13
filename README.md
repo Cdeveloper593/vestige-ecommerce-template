@@ -4,6 +4,12 @@ A dark-editorial fashion e-commerce **template** (Ink `#101010` / Bone `#EDE8E0`
 
 **Component rule:** every visual UI component comes from only two sources — [componentry.dev](https://componentry.dev) and [reactbits.dev](https://reactbits.dev) — installed as real source from their official registries (`/r/<name>.json`, the same payload the shadcn CLI installs). See `COMPONENTS.md` for the full inventory, placements, and install-failure swaps. Custom code is glue only: routing/layout, product data, cart & checkout state, theming.
 
+## Images
+
+All product and hero images are served **locally** from `public/images/` (34 photos, downloaded from Unsplash on 2026-11-13) — the site has **no remote image dependencies**, so it keeps working even if the original image links go down. One thing that is still remote, plainly stated: fonts load from Google Fonts.
+
+**Cloning from GitHub?** The JPG files themselves are not committed — the publishing tool used for this repo rejects binary files. If `public/images/` is empty in your clone, run `node scripts/download-images.mjs` once to fetch all 34 photos into place; after that the site is fully self-contained.
+
 ## Run it
 
 ```bash

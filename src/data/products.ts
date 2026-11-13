@@ -1,5 +1,6 @@
-// Product data — non-visual glue. Every image URL below was curl-verified HTTP 200 on 2026-11-13.
-const u = (id: string) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=900&q=70`
+// Product data — non-visual glue. All images are LOCAL: downloaded 2026-11-13 from Unsplash
+// and stored in public/images/ — the site has no remote image dependencies.
+const u = (id: string) => `/images/${id}.jpg`
 
 export interface Review { author: string; rating: number; title: string; body: string; date: string }
 export interface Product {
