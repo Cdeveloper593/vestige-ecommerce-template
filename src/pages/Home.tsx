@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { GrainGradient } from '../components/componentry/grain-gradient/grain-gradient'
 import { KineticTextReveal } from '../components/componentry/kinetic-text-reveal/kinetic-text-reveal'
-import { TextMorph } from '../components/componentry/text-morph/text-morph'
+import { FlippingWordSwap } from '../components/componentry/flipping-word-swap/flipping-word-swap'
 import { StickyScrollCards } from '../components/componentry/sticky-scroll-cards/sticky-scroll-cards'
 import { CaseStudyFlipStack } from '../components/componentry/case-study-flip-stack/case-study-flip-stack'
 import { MagneticDock, DockIconHome, DockIconSearch, DockIconMail } from '../components/componentry/magnetic-dock/magnetic-dock'
@@ -40,7 +40,7 @@ export default function Home() {
             </h1>
             <p className="mt-6 max-w-md text-sand text-base sm:text-lg">
               Dark editorial clothing built to outlast trends —{' '}
-              <TextMorph words={['HEAVY COTTON', 'FULL-GRAIN LEATHER', 'ITALIAN WOOL', 'SELvedge DENIM'.toUpperCase()]} className="text-bone font-semibold" />
+              <FlippingWordSwap word1="SELVEDGE DENIM" word2="FULL-GRAIN LEATHER" className="text-bone font-semibold" toClassName="text-vermilion font-semibold" />
               , cut in limited runs, stripped of logos.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
