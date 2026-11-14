@@ -199,7 +199,11 @@ genuine finding. Method and raw reports: `~/workspace/tools/pw/qa*-vestige.mjs`,
     the wrong attributes were removed rather than perpetuated.
 30. **Unknown URLs rendered Home** — the router catch-all silently served the
     homepage for every bad URL. New native `NotFound` page ("Nothing remains
-    here", links to Shop/Home), mirroring Product's not-found state.
+    here", links to Shop/Home), mirroring Product's not-found state. Related,
+    found during post-push verification: **every deep link 404'd on Vercel**
+    (/shop, /checkout, product URLs on refresh or direct visit) because the
+    repo had no SPA fallback config — added `vercel.json` with a catch-all
+    rewrite to /index.html (static files still serve first).
 31. **No per-route titles** — Shop, Product (per product name), Checkout, and
     NotFound now set `document.title`; Home restores the default. (Honest SPA
     limit: one global meta/OG set in index.html; per-route meta needs SSR.)
