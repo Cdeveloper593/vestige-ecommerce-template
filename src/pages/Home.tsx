@@ -104,7 +104,7 @@ export default function Home() {
       {/* ── STORY — Componentry Sticky Scroll Cards + React Bits ScrollReveal ── */}
       <section className="border-y border-smoke bg-coal" aria-labelledby="story-h">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 grid lg:grid-cols-2 gap-12">
-          <div className="lg:sticky lg:top-28 self-start">
+          <div className="lg:sticky lg:top-[max(6rem,calc(50vh-240px))] self-start">
             <p className="eyebrow mb-4">The Vestige Method</p>
             <h2 id="story-h" className="font-display uppercase text-4xl sm:text-6xl leading-[0.95] mb-6">Built to be<br />what remains</h2>
             <ScrollReveal baseOpacity={0.15} enableBlur blurStrength={3} textClassName="text-sand text-lg leading-relaxed">
