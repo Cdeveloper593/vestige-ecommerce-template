@@ -450,8 +450,16 @@ const createEngine = (
     root.style.setProperty('--logoloop-pad', `${Math.ceil(pad)}px`);
     root.style.perspective = geo.tilted ? `${geo.persp}px` : '';
     track.style.transformOrigin = geo.tilted ? (cfg.vertical ? `50% ${L / 2}px` : `${L / 2}px 50%`) : '';
-    if (copies !== st.layout.copies || primary !== st.layout.primary) {
-      st.layout = { copies, primary };
+    // Safety cap (QA 2026-11-14): if an ancestor's width is content-driven
+    // (e.g. a grid column without min-w-0), root.clientWidth grows with every
+    // added copy and the layout computation feeds back into itself —
+    // copies ran away past 55 and React killed the page (error #185) at
+    // mobile widths. 64 copies is far beyond any legitimate viewport/period
+    // combination and makes the layout converge even in a broken ancestor.
+    const cappedCopies = Math.min(copies, 64);
+    const cappedPrimary = Math.min(primary, cappedCopies - 1);
+    if (cappedCopies !== st.layout.copies || cappedPrimary !== st.layout.primary) {
+      st.layout = { copies: cappedCopies, primary: cappedPrimary };
       setLayout(st.layout);
     }
   };

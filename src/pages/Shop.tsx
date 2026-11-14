@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import BlurText from '../components/reactbits/BlurText/BlurText'
 import ElasticSlider from '../components/reactbits/ElasticSlider/ElasticSlider'
@@ -17,6 +17,8 @@ export default function Shop() {
   const [sort, setSort] = useState<Sort>('featured')
   const [maxPrice, setMaxPrice] = useState(MAX_PRICE)
   const category = params.get('category') || 'All'
+  // Per-route document title (SPA has no SSR meta) — QA 2026-11-14.
+  useEffect(() => { document.title = 'Shop — VESTIGE' }, [])
 
   const results = useMemo(() => {
     let list = products.filter((p) =>
@@ -35,7 +37,14 @@ export default function Shop() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
-      <SilkAurora baseColor="#101010" midColor="#1d1d1d" accentColor="#FF4D00" className="mb-10 px-6 py-10">
+      {/* BlurText renders a <p>, so the page's real h1 is this sr-only one (QA 2026-11-14). */}
+      <h1 className="sr-only">Shop all remains</h1>
+      {/* min-h override (QA 2026-11-14): the component defaults to a
+          full-viewport band; its root uses containerType:"size", so the
+          height must be set explicitly — min-h-0 collapsed it to a clipped
+          strip. 360/420px fits the heading block without pushing the grid
+          a full screen down. */}
+      <SilkAurora baseColor="#101010" midColor="#1d1d1d" accentColor="#FF4D00" className="mb-10 px-6 py-10 min-h-[360px] md:min-h-[420px]">
         <p className="eyebrow mb-3">Drop 04 — 14 pieces</p>
         <BlurText text="SHOP ALL REMAINS" className="font-display uppercase text-5xl sm:text-7xl" />
         <p className="text-sand mt-3 max-w-lg">Search, filter by category and price, sort how you like. Name and price stay readable — always.</p>
@@ -53,7 +62,7 @@ export default function Shop() {
               {['All', ...CATEGORIES].map((c) => (
                 <button key={c} type="button" aria-pressed={category === c}
                   onClick={() => setParams(c === 'All' ? {} : { category: c })}
-                  className={`text-left px-3 py-2 text-sm border ${category === c ? 'bg-vermilion text-white border-vermilion' : 'border-smoke text-sand hover:border-bone hover:text-bone'}`}>
+                  className={`text-left px-3 py-2 text-sm border ${category === c ? 'bg-vermilion text-ink font-semibold border-vermilion' : 'border-smoke text-sand hover:border-bone hover:text-bone'}`}>
                   {c}
                 </button>
               ))}
@@ -62,12 +71,12 @@ export default function Shop() {
           <div>
             <p className="eyebrow mb-3" id="price-label">Max price — {money(maxPrice)}</p>
             <div aria-labelledby="price-label">
-              <ElasticSlider startingValue={0} maxValue={MAX_PRICE} defaultValue={MAX_PRICE} isStepped stepSize={25}
+              <ElasticSlider startingValue={0} maxValue={MAX_PRICE} value={maxPrice} isStepped stepSize={25} ariaLabel="Maximum price"
                 onChange={(v) => setMaxPrice(v)} formatValue={(v) => money(v)} leftIcon={<span className="text-xs">$95</span>} rightIcon={<span className="text-xs">$500</span>} />
             </div>
             <p className="text-xs text-sand mt-1">Keyboard alternative: </p>
             <label className="text-xs text-sand">Max price in dollars
-              <input type="number" min={95} max={500} step={5} value={maxPrice} onChange={(e) => setMaxPrice(Math.min(MAX_PRICE, Math.max(0, Number(e.target.value) || 0)))} className="field mt-1" />
+              <input type="number" min={0} max={500} step={25} value={maxPrice} onChange={(e) => setMaxPrice(Math.min(MAX_PRICE, Math.max(0, Number(e.target.value) || 0)))} className="field mt-1" />
             </label>
           </div>
           <div>
@@ -83,6 +92,7 @@ export default function Shop() {
         </div>
 
         <section aria-live="polite">
+          <h2 className="sr-only">Products</h2>
           <p className="text-sm text-sand mb-5" role="status">{results.length} {results.length === 1 ? 'piece' : 'pieces'}{category !== 'All' ? ` in ${category}` : ''}{query ? ` matching “${query}”` : ''}</p>
           {results.length === 0 ? (
             <div className="border border-smoke p-10 text-center">

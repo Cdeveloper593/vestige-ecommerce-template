@@ -660,6 +660,8 @@ const CardSwap = forwardRef<CardSwapHandle, CardSwapProps>(
       const paused = () => {
         const s = settingsRef.current;
         return (
+          // QA 2026-11-14: autoplay must not run for reduced-motion users.
+          reduce ||
           !s.autoplay ||
           count < 2 ||
           (s.pauseOnHover && state.overCard) ||

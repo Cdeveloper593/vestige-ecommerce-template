@@ -459,6 +459,8 @@ export default function Carousel({
     };
 
     const paused = (s: Settings) =>
+      // QA 2026-11-14: autoplay must not run for reduced-motion users.
+      reduce ||
       (s.pauseOnHover && state.hovered) ||
       state.focused ||
       Boolean(state.drag) ||

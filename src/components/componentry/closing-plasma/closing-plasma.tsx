@@ -249,12 +249,17 @@ export function ClosingPlasma({
     container.addEventListener("pointermove", handlePointerMove);
     container.addEventListener("pointerleave", handlePointerLeave);
 
+    // QA 2026-11-14: every early-exit path below must return this cleanup —
+    // previously the shader/program/uniform failure paths returned bare and
+    // leaked both pointer listeners for the life of the page.
+    const detach = () => {
+      container.removeEventListener("pointermove", handlePointerMove);
+      container.removeEventListener("pointerleave", handlePointerLeave);
+    };
+
     const gl = canvas.getContext("webgl", { antialias: false, alpha: true });
     if (!gl) {
-      return () => {
-        container.removeEventListener("pointermove", handlePointerMove);
-        container.removeEventListener("pointerleave", handlePointerLeave);
-      };
+      return detach;
     }
 
     const compileShader = (type: number, source: string) => {
@@ -274,14 +279,14 @@ export function ClosingPlasma({
     const vertexShader = compileShader(gl.VERTEX_SHADER, VERTEX_SHADER);
     const fragmentShader = compileShader(gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
     if (!vertexShader || !fragmentShader) {
-      return;
+      return detach;
     }
 
     const program = gl.createProgram();
     if (!program) {
       gl.deleteShader(vertexShader);
       gl.deleteShader(fragmentShader);
-      return;
+      return detach;
     }
 
     gl.attachShader(program, vertexShader);
@@ -291,7 +296,7 @@ export function ClosingPlasma({
       gl.deleteProgram(program);
       gl.deleteShader(vertexShader);
       gl.deleteShader(fragmentShader);
-      return;
+      return detach;
     }
 
     gl.useProgram(program);
@@ -348,7 +353,7 @@ export function ClosingPlasma({
       gl.deleteProgram(program);
       gl.deleteShader(vertexShader);
       gl.deleteShader(fragmentShader);
-      return;
+      return detach;
     }
 
     const resize = () => {
@@ -380,9 +385,12 @@ export function ClosingPlasma({
 
     let rafId = 0;
     const start = performance.now();
+    // QA 2026-11-14: reduced-motion users get one static frame, not a
+    // perpetual WebGL loop (the component previously had no RM handling).
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const render = (now: number) => {
-      const elapsed = (now - start) / 1000;
+      const elapsed = reducedMotion ? 8 : (now - start) / 1000;
       mouseRef.current.x += (targetMouseRef.current.x - mouseRef.current.x) * 0.05;
       mouseRef.current.y += (targetMouseRef.current.y - mouseRef.current.y) * 0.05;
 
@@ -397,7 +405,7 @@ export function ClosingPlasma({
       gl.uniform1f(uVignette, settings.vignette);
       gl.uniform1f(uOpacity, settings.opacity);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      rafId = requestAnimationFrame(render);
+      if (!reducedMotion) rafId = requestAnimationFrame(render);
     };
 
     rafId = requestAnimationFrame(render);

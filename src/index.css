@@ -8,7 +8,12 @@
   --vermilion: #ff4d00;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+/* Guard against decorative transforms (rotated gallery cards, bento glows)
+   painting past the viewport — clip (not hidden) keeps position:sticky
+   working. QA 2026-11-14: product gallery stack cards overflowed the right
+   edge by ~8px at 360–390px without this. */
+html, body { overflow-x: clip; }
 body { background: var(--ink); color: var(--bone); font-family: Archivo, Helvetica, Arial, sans-serif; }
 ::selection { background: var(--vermilion); color: #fff; }
 
@@ -19,10 +24,12 @@ body { background: var(--ink); color: var(--bone); font-family: Archivo, Helveti
 .field {
   @apply w-full bg-coal border border-smoke px-4 py-3 text-bone text-sm;
 }
-.field::placeholder { color: rgba(207,200,188,.5); }
-.field:focus { border-color: var(--vermilion); outline: none; }
+.field::placeholder { color: rgba(207,200,188,.75); }
+.field:focus { border-color: var(--vermilion); }
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 bg-vermilion text-white font-semibold uppercase tracking-widest text-xs px-8 py-4 transition-colors disabled:opacity-40 disabled:pointer-events-none;
+  /* Ink text, not white (QA 2026-11-14): white on vermilion is 3.32:1 and
+     fails WCAG AA at this size; ink on vermilion is ≈5.7:1. */
+  @apply inline-flex items-center justify-center gap-2 bg-vermilion text-ink font-semibold uppercase tracking-widest text-xs px-8 py-4 transition-colors disabled:opacity-40 disabled:pointer-events-none;
 }
 .btn-primary:hover { background: var(--bone); color: var(--ink); }
 .btn-ghost {
@@ -50,8 +57,17 @@ body { background: var(--ink); color: var(--bone); font-family: Archivo, Helveti
    Home.tsx: padding cut via the component's className hook, stage height
    reduced, the cards' downward offset removed, and the story text column
    made sticky so it stays beside the stack. */
-.story-stack main > section { height: 80vh; }
-.story-stack main figure { top: 0 !important; }
+.story-stack .ssc-root > section { height: 80vh; }
+.story-stack .ssc-root figure { top: 0 !important; }
+
+/* Case Study Flip Stack — dead-space trim (QA 2026-11-14).
+   As shipped the intro section is 82vh/min-640px holding only a hint and the
+   heading, and the end section is 120vh holding one label — the same voids
+   trimmed in the Cerium build of this component. The flip track itself
+   (100vh per card) is the mechanic and stays. */
+.flip-stack > section:first-of-type { height: 56vh; min-height: 420px; }
+.flip-stack > section:first-of-type > div:last-child { top: clamp(190px, 27vh, 270px); }
+.flip-stack > section:last-of-type { min-height: 38vh; }
 
 /* Cart drawer — layout glue (transform only) */
 .drawer { transition: transform .45s cubic-bezier(.32,.72,0,1); }

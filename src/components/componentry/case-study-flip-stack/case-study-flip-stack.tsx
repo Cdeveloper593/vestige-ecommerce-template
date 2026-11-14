@@ -175,7 +175,7 @@ function FlipCard({
             <h2 className="max-w-[16ch] text-balance text-[clamp(28px,3.25vw,48px)] font-semibold leading-[0.96] tracking-[-0.05em]">
               {item.title}
             </h2>
-            <p className="mt-[clamp(16px,1.8vw,24px)] max-w-[42rem] text-[clamp(13px,1.1vw,16px)] leading-[1.5] opacity-82">
+            <p className="mt-[clamp(16px,1.8vw,24px)] max-w-[42rem] text-[clamp(13px,1.1vw,16px)] leading-[1.5] opacity-[0.82]">
               {item.description}
             </p>
           </div>
@@ -219,7 +219,7 @@ export function CaseStudyFlipStack({
   const cardProgress = reduceMotion ? scrollYProgress : smoothProgress;
 
   return (
-    <main
+    <div
       className={cn("relative bg-[#eeeae2] font-sans text-[#29251f]", className)}
     >
       <section className="relative h-[82vh] min-h-[640px] overflow-hidden px-5 sm:px-10">
@@ -247,9 +247,9 @@ export function CaseStudyFlipStack({
         </div>
 
         <div className="absolute inset-x-5 top-[clamp(330px,43vh,440px)] flex justify-center sm:inset-x-10">
-          <h1 className="max-w-[18ch] text-center text-[clamp(42px,5.5vw,82px)] font-semibold leading-[0.92] tracking-[-0.06em] text-[#a94808]">
+          <p className="max-w-[18ch] text-center text-[clamp(42px,5.5vw,82px)] font-semibold leading-[0.92] tracking-[-0.06em] text-[#101010]">
             {heading}
-          </h1>
+          </p>
         </div>
       </section>
 
@@ -282,6 +282,6 @@ export function CaseStudyFlipStack({
           {endLabel}
         </p>
       </section>
-    </main>
+    </div>
   );
 }

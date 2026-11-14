@@ -26,6 +26,10 @@ type RevealMode = 'scrub' | 'enter';
 
 interface ScrollRevealProps {
   children: ReactNode;
+  /** Element to render — defaults to h2 (upstream behaviour). Pass 'p' when
+      the revealed text is body copy, not a heading (QA 2026-11-14: the
+      hardcoded h2 turned whole paragraphs into fake headings). */
+  as?: 'h2' | 'p';
   scrollContainerRef?: RefObject<HTMLElement | null>;
   enableBlur?: boolean;
   baseOpacity?: number;
@@ -102,6 +106,7 @@ const paintPiece = (piece: HTMLElement, t: number, look: RevealLook) => {
 
 const ScrollReveal: React.FC<ScrollRevealProps> = ({
   children,
+  as = 'h2',
   scrollContainerRef,
   enableBlur = true,
   baseOpacity = 0.1,
@@ -332,15 +337,26 @@ const ScrollReveal: React.FC<ScrollRevealProps> = ({
     wordAnimationEnd
   ]);
 
-  return (
-    <h2 ref={containerRef} className={`my-5 ${containerClassName}`} aria-label={text ?? undefined}>
-      <span
-        ref={textRef}
-        className={`block text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] font-semibold ${textClassName}`}
-        aria-hidden={text === null ? undefined : true}
-      >
-        {splitText ?? children}
-      </span>
+  const inner = (
+    <span
+      ref={textRef}
+      className={`block text-[clamp(1.6rem,4vw,3rem)] leading-[1.5] font-semibold ${textClassName}`}
+      aria-hidden={as === 'p' ? undefined : text === null ? undefined : true}
+    >
+      {splitText ?? children}
+    </span>
+  );
+  const cls = `my-5 ${containerClassName}`;
+  // QA 2026-11-14: as="p" must not carry aria-label (prohibited on a plain
+  // <p>) and its text must stay exposed — the aria-label + aria-hidden
+  // pattern is only valid on the heading form.
+  return as === 'p' ? (
+    <p ref={containerRef as unknown as RefObject<HTMLParagraphElement>} className={cls}>
+      {inner}
+    </p>
+  ) : (
+    <h2 ref={containerRef} className={cls} aria-label={text ?? undefined}>
+      {inner}
     </h2>
   );
 };

@@ -112,10 +112,10 @@ export function StickyScrollCards({
   const reduceMotion = useReducedMotion() ?? false;
 
   const content = (
-    <main
+    <div
       ref={container}
       className={cn(
-        "relative flex w-full flex-col items-center pb-[100vh] pt-[50vh]",
+        "ssc-root relative flex w-full flex-col items-center pb-[100vh] pt-[50vh]",
         className,
       )}
     >
@@ -136,7 +136,7 @@ export function StickyScrollCards({
           reduceMotion={reduceMotion}
         />
       ))}
-    </main>
+    </div>
   );
 
   return reduceMotion ? content : <ReactLenis root>{content}</ReactLenis>;

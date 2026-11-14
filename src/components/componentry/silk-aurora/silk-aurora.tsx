@@ -240,6 +240,13 @@ export function SilkAurora({
     container.addEventListener("pointermove", handlePointerMove);
     container.addEventListener("pointerleave", handlePointerLeave);
 
+    // QA 2026-11-14: failure paths inside the try block must return this
+    // cleanup — they previously returned bare and leaked both listeners.
+    const detach = () => {
+      container.removeEventListener("pointermove", handlePointerMove);
+      container.removeEventListener("pointerleave", handlePointerLeave);
+    };
+
     try {
       const gl = canvas.getContext("webgl", { antialias: false, alpha: false });
       if (!gl) {
@@ -270,7 +277,7 @@ export function SilkAurora({
       const fragmentShader = compileShader(gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
       if (!vertexShader || !fragmentShader) {
         setHasWebGLError(true);
-        return;
+        return detach;
       }
 
       const program = gl.createProgram();
@@ -278,7 +285,7 @@ export function SilkAurora({
         gl.deleteShader(vertexShader);
         gl.deleteShader(fragmentShader);
         setHasWebGLError(true);
-        return;
+        return detach;
       }
 
       gl.attachShader(program, vertexShader);
@@ -289,7 +296,7 @@ export function SilkAurora({
         gl.deleteShader(vertexShader);
         gl.deleteShader(fragmentShader);
         setHasWebGLError(true);
-        return;
+        return detach;
       }
 
       gl.useProgram(program);
@@ -340,7 +347,7 @@ export function SilkAurora({
         gl.deleteShader(vertexShader);
         gl.deleteShader(fragmentShader);
         setHasWebGLError(true);
-        return;
+        return detach;
       }
 
       const resize = () => {
@@ -389,7 +396,9 @@ export function SilkAurora({
         );
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        rafId = requestAnimationFrame(render);
+        // QA 2026-11-14: under reduced motion the frame is already static
+        // (frozen uniforms above) — draw it once instead of looping forever.
+        if (!reducedMotion) rafId = requestAnimationFrame(render);
       };
 
       rafId = requestAnimationFrame(render);
@@ -431,9 +440,9 @@ export function SilkAurora({
                 {subtitle}
               </p>
             )}
-            {title && <h1 className={HEADLINE_CLASS}>{title}</h1>}
+            {title && <h2 className={HEADLINE_CLASS}>{title}</h2>}
             {description && (
-              <p className="mt-7 max-w-[620px] text-base leading-relaxed text-white/68 md:text-xl">
+              <p className="mt-7 max-w-[620px] text-base leading-relaxed text-white/70 md:text-xl">
                 {description}
               </p>
             )}
@@ -477,9 +486,9 @@ export function SilkAurora({
                   {subtitle}
                 </p>
               )}
-              {title && <h1 className={HEADLINE_CLASS}>{title}</h1>}
+              {title && <h2 className={HEADLINE_CLASS}>{title}</h2>}
               {description && (
-                <p className="mt-7 max-w-[620px] text-base leading-relaxed text-white/68 md:text-xl">
+                <p className="mt-7 max-w-[620px] text-base leading-relaxed text-white/70 md:text-xl">
                   {description}
                 </p>
               )}
