@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Stepper, { Step } from '../components/reactbits/Stepper/Stepper'
 import BlurText from '../components/reactbits/BlurText/BlurText'
 import SpotlightCard from '../components/reactbits/SpotlightCard/SpotlightCard'
 import FadeContent from '../components/reactbits/FadeContent/FadeContent'
 import { useCart } from '../store/cart'
-import { mockCommerce, type Order, type PaymentDetails, type ShippingDetails } from '../lib/commerce'
+import { mockCommerce, shippingFor, type CheckoutSession, type Order, type PaymentDetails, type ShippingDetails } from '../lib/commerce'
 import { money } from '../lib/utils'
 
 const emptyShip: ShippingDetails = { name: '', email: '', address: '', city: '', postcode: '', country: 'United States' }
@@ -20,10 +20,21 @@ export default function Checkout() {
   const [order, setOrder] = useState<Order | null>(null)
   const [placing, setPlacing] = useState(false)
 
-  const shippingCost = subtotal >= 200 || subtotal === 0 ? 0 : 12
+  const shippingCost = shippingFor(subtotal)
   const total = subtotal + shippingCost
-  const session = useMemo(() => ({ id: 'local', subtotal, shipping: shippingCost, total }), [subtotal, shippingCost, total])
+  // QA 2026-11-14: the summary previously rendered a locally-invented fake
+  // session while placeOrder created a different one — same numbers only by
+  // luck. Now there is exactly one adapter session: created from the cart,
+  // rendered in the summary, and charged by placeOrder.
+  const [session, setSession] = useState<CheckoutSession | null>(null)
+  useEffect(() => {
+    let live = true
+    mockCommerce.createCheckoutSession(items).then((s) => { if (live) setSession(s) })
+    return () => { live = false }
+  }, [items])
+  const summary = session ?? { subtotal, shipping: shippingCost, total }
 
+  useEffect(() => { document.title = 'Checkout — VESTIGE' }, [])
   useEffect(() => { window.scrollTo({ top: 0 }) }, [step])
 
   const validate = (forStep: number): string[] => {
@@ -37,33 +48,56 @@ export default function Checkout() {
     }
     if (forStep === 2) {
       if (pay.cardName.trim().length < 2) e.push('Name on card is required.')
-      if (pay.cardNumber.replace(/\s/g, '').length < 12) e.push('Card number looks too short (mock — any 12+ digits).')
-      if (!/^\d{2}\/\d{2}$/.test(pay.expiry)) e.push('Expiry must be MM/YY.')
-      if (pay.cvc.trim().length < 3) e.push('CVC must be 3+ digits.')
+      // QA 2026-11-14: digits only (letters previously passed), a real
+      // MM/YY month, not in the past, and a numeric 3–4 digit CVC.
+      const digits = pay.cardNumber.replace(/[\s-]/g, '')
+      if (!/^\d{12,19}$/.test(digits)) e.push('Card number must be 12–19 digits (mock — try 4242 4242 4242 4242).')
+      const m = /^(\d{2})\/(\d{2})$/.exec(pay.expiry)
+      if (!m || Number(m[1]) < 1 || Number(m[1]) > 12) e.push('Expiry must be a valid MM/YY.')
+      else {
+        const now = new Date()
+        const expYear = 2000 + Number(m[2])
+        if (expYear < now.getFullYear() || (expYear === now.getFullYear() && Number(m[1]) < now.getMonth() + 1)) e.push('That card expiry is in the past.')
+      }
+      if (!/^\d{3,4}$/.test(pay.cvc.trim())) e.push('CVC must be 3–4 digits.')
     }
     return e
   }
 
   const onStepChange = (next: number) => {
     if (next > step) {
-      const e = validate(step)
-      setErrors(e)
-      if (e.length) return
+      // Step indicators are clickable: a jump (e.g. 1 → 3) must validate every
+      // step it skips, not just the current one (QA 2026-11-14 — previously a
+      // jump validated only the current step and landed on Review with an
+      // unvalidated payment step). Land on the first invalid step so its
+      // errors sit next to the fields they belong to.
+      for (let s = step; s < next; s++) {
+        const e = validate(s)
+        if (e.length) { setErrors(e); setStep(s); return }
+      }
     }
     setErrors([])
     setStep(next)
   }
 
   const placeOrder = async () => {
+    if (placing) return
     const e = [...validate(1), ...validate(2)]
     setErrors(e)
     if (e.length) return
     setPlacing(true)
-    const s = await mockCommerce.createCheckoutSession(items)
-    const o = await mockCommerce.placeOrder(s, ship, pay, items)
-    setOrder(o)
-    setPlacing(false)
-    clear()
+    try {
+      const s = session ?? (await mockCommerce.createCheckoutSession(items))
+      const o = await mockCommerce.placeOrder(s, ship, pay, items)
+      setOrder(o)
+      clear()
+    } catch {
+      // QA 2026-11-14: a rejected adapter promise previously left the button
+      // stuck on "Placing order…" forever.
+      setErrors(['Something went wrong placing the order (mock adapter). Please try again.'])
+    } finally {
+      setPlacing(false)
+    }
   }
 
   if (order) return (
@@ -96,6 +130,8 @@ export default function Checkout() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 sm:px-6 py-12">
+      {/* BlurText renders a <p>, so the page's real h1 is this sr-only one (QA 2026-11-14). */}
+      <h1 className="sr-only">Checkout</h1>
       <BlurText text="CHECKOUT" className="font-display uppercase text-5xl sm:text-7xl mb-10" />
       <div className="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
         <div>
@@ -153,7 +189,7 @@ export default function Checkout() {
           <ul className="space-y-4">
             {items.map((i) => (
               <li key={`${i.product.slug}|${i.size}|${i.colour}`} className="flex gap-3 items-center">
-                <span className="ph w-12 aspect-[4/5] shrink-0"><img src={i.product.images[0]} alt="" width={48} height={60} /></span>
+                <span className="ph w-12 aspect-[4/5] shrink-0"><img src={i.product.images[0]} alt="" /></span>
                 <span className="flex-1 min-w-0"><span className="block truncate font-semibold text-sm">{i.product.name}</span>
                   <span className="text-xs text-sand">{i.size} · {i.colour} · ×{i.qty}</span></span>
                 <span className="font-semibold text-sm">{money(i.product.price * i.qty)}</span>
@@ -161,9 +197,9 @@ export default function Checkout() {
             ))}
           </ul>
           <dl className="border-t border-smoke mt-6 pt-4 space-y-2 text-sm">
-            <div className="flex justify-between"><dt className="text-sand">Subtotal</dt><dd>{money(session.subtotal)}</dd></div>
-            <div className="flex justify-between"><dt className="text-sand">Shipping</dt><dd>{session.shipping === 0 ? 'Free' : money(session.shipping)}</dd></div>
-            <div className="flex justify-between text-lg font-bold pt-2 border-t border-smoke"><dt>Total</dt><dd>{money(session.total)}</dd></div>
+            <div className="flex justify-between"><dt className="text-sand">Subtotal</dt><dd>{money(summary.subtotal)}</dd></div>
+            <div className="flex justify-between"><dt className="text-sand">Shipping</dt><dd>{summary.shipping === 0 ? 'Free' : money(summary.shipping)}</dd></div>
+            <div className="flex justify-between text-lg font-bold pt-2 border-t border-smoke"><dt>Total</dt><dd>{money(summary.total)}</dd></div>
           </dl>
         </SpotlightCard>
       </div>

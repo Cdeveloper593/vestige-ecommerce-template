@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useCart } from '../../store/cart'
 
@@ -19,14 +19,18 @@ export default function Header() {
   const { count, setOpen } = useCart()
   const { pathname } = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement>(null)
 
   // Close the menu whenever the route changes.
   useEffect(() => { setMenuOpen(false) }, [pathname])
 
-  // Escape closes the menu.
+  // Escape closes the menu and returns focus to the toggle (QA 2026-11-14 —
+  // previously focus was stranded inside the now-invisible panel).
   useEffect(() => {
     if (!menuOpen) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false) }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setMenuOpen(false); toggleRef.current?.focus() }
+    }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [menuOpen])
@@ -40,6 +44,7 @@ export default function Header() {
 
         {/* Burger toggle — three lines that fold into an X when open */}
         <button
+          ref={toggleRef}
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
           aria-expanded={menuOpen}
@@ -55,10 +60,10 @@ export default function Header() {
           <span className="hidden sm:inline text-[10px] font-semibold uppercase tracking-widest text-bone">Menu</span>
         </button>
 
-        <button type="button" onClick={() => setOpen(true)} aria-label={`Open cart, ${count} items`}
+        <button type="button" onClick={() => setOpen(true)} aria-label={`Cart ${count} items`}
           className="relative border border-bone/30 px-4 py-2 text-xs font-semibold uppercase tracking-widest hover:border-bone">
           Cart
-          <span aria-hidden className="absolute -top-2 -right-2 bg-vermilion text-white text-[10px] font-bold w-5 h-5 grid place-items-center rounded-full">{count}</span>
+          <span aria-hidden className="absolute -top-2 -right-2 bg-vermilion text-ink text-[10px] font-bold w-5 h-5 grid place-items-center rounded-full">{count}</span>
         </button>
       </div>
 
@@ -90,7 +95,7 @@ export default function Header() {
                 key={c}
                 to={`/shop?category=${encodeURIComponent(c)}`}
                 onClick={() => setMenuOpen(false)}
-                className="text-xs font-semibold uppercase tracking-widest text-bone/80 hover:text-vermilion"
+                className="py-1.5 text-xs font-semibold uppercase tracking-widest text-bone/80 hover:text-vermilion"
               >
                 {c}
               </Link>

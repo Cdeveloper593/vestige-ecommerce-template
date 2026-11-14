@@ -18,9 +18,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = JSON.parse(localStorage.getItem('vestige-cart') || '[]') as { slug: string; size: string; colour: string; qty: number }[]
+      // Validate restored entries (QA 2026-11-14): previously any stored
+      // size/colour/qty was trusted verbatim — a stale or tampered entry
+      // could resurrect invalid variants or negative/huge quantities.
       return saved.flatMap((s) => {
         const product = products.find((p) => p.slug === s.slug)
-        return product ? [{ product, size: s.size, colour: s.colour, qty: s.qty }] : []
+        const qty = Math.floor(Number(s.qty))
+        if (!product || !Number.isFinite(qty) || qty < 1) return []
+        if (!product.sizes.includes(s.size) || !product.colours.some((c) => c.name === s.colour)) return []
+        return [{ product, size: s.size, colour: s.colour, qty: Math.min(qty, product.stock) }]
       })
     } catch { return [] }
   })
@@ -34,8 +40,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const k = key({ product, size, colour })
       const found = prev.find((i) => key(i) === k)
-      if (found) return prev.map((i) => (key(i) === k ? { ...i, qty: i.qty + qty } : i))
-      return [...prev, { product, size, colour, qty }]
+      if (found) return prev.map((i) => (key(i) === k ? { ...i, qty: Math.min(product.stock, i.qty + qty) } : i))
+      return [...prev, { product, size, colour, qty: Math.min(product.stock, Math.max(1, qty)) }]
     })
     setOpen(true)
   }

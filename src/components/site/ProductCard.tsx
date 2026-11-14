@@ -11,20 +11,21 @@ import type { Product } from '../../data/products'
 export default function ProductCard({ product }: { product: Product }) {
   return (
     <SpotlightCard theme="dark" spotlightColor="rgba(255,77,0,0.25)" className="bg-coal border border-smoke h-full">
-      <Link to={`/product/${product.slug}`} className="block group" aria-label={`${product.name}, ${money(product.price)}`}>
+      <Link to={`/product/${product.slug}`} className="block group">
         <div className="relative">
           <HoverTransition
             effect="wipe"
+            tabIndex={-1}
             defaultComponent={
               <GlareHover width="100%" height="100%" glareColor="#EDE8E0" glareOpacity={0.25}>
-                <div className="ph aspect-[4/5]"><img src={product.images[0]} alt={product.name} loading="lazy" width={720} height={900} /></div>
+                <div className="ph aspect-[4/5]"><img src={product.images[0]} alt={product.name} loading="lazy" /></div>
               </GlareHover>
             }
             hoverComponent={
-              <div className="ph aspect-[4/5]"><img src={product.images[1] ?? product.images[0]} alt="" loading="lazy" width={720} height={900} /></div>
+              <div className="ph aspect-[4/5]"><img src={product.images[1] ?? product.images[0]} alt="" loading="lazy" /></div>
             }
           />
-          {product.badge && <span className="absolute top-3 left-3 bg-vermilion text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1">{product.badge}</span>}
+          {product.badge && <span className="absolute top-3 left-3 bg-vermilion text-ink text-[10px] font-bold uppercase tracking-widest px-2 py-1">{product.badge}</span>}
           {product.stock <= 12 && <span className="absolute top-3 right-3 bg-ink/85 text-bone text-[10px] font-bold uppercase tracking-widest px-2 py-1">Only {product.stock} left</span>}
         </div>
         <div className="p-4">
