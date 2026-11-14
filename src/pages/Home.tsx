@@ -104,7 +104,7 @@ export default function Home() {
       {/* ── STORY — Componentry Sticky Scroll Cards + React Bits ScrollReveal ── */}
       <section className="border-y border-smoke bg-coal" aria-labelledby="story-h">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 py-20 grid lg:grid-cols-2 gap-12">
-          <div>
+          <div className="lg:sticky lg:top-28 self-start">
             <p className="eyebrow mb-4">The Vestige Method</p>
             <h2 id="story-h" className="font-display uppercase text-4xl sm:text-6xl leading-[0.95] mb-6">Built to be<br />what remains</h2>
             <ScrollReveal baseOpacity={0.15} enableBlur blurStrength={3} textClassName="text-sand text-lg leading-relaxed">
@@ -112,12 +112,14 @@ export default function Home() {
             </ScrollReveal>
             <div className="mt-8"><LogoLoop logos={['HYPEBEAST', 'GQ', 'DAZED', 'HIGHSNOBIETY', 'i-D'].map((n) => ({ node: <span className="font-display text-xl text-sand">{n}</span>, ariaLabel: n }))} logoHeight={28} gap={48} fadeOut fadeOutColor="#171717" /></div>
           </div>
-          <StickyScrollCards hint="Scroll — the method" cards={[
-            { title: '01 — Heavy cloth only', src: products[2].images[0] },
-            { title: '02 — Cut in limited runs', src: products[0].images[0] },
-            { title: '03 — No logos, ever', src: products[9].images[0] },
-            { title: '04 — Repaired, not replaced', src: products[11].images[0] },
-          ]} />
+          <div className="story-stack min-w-0">
+            <StickyScrollCards className="pt-[8vh] pb-[8vh]" hint="Scroll — the method" cards={[
+              { title: '01 — Heavy cloth only', src: products[2].images[0] },
+              { title: '02 — Cut in limited runs', src: products[0].images[0] },
+              { title: '03 — No logos, ever', src: products[9].images[0] },
+              { title: '04 — Repaired, not replaced', src: products[11].images[0] },
+            ]} />
+          </div>
         </div>
       </section>
 

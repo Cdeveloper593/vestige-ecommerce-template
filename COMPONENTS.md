@@ -15,7 +15,7 @@ Animation dependencies of those components (motion, framer-motion, gsap, @gsap/r
 | Grain Gradient | Home hero background (disabled under prefers-reduced-motion) |
 | Kinetic Text Reveal | Home hero headline; Product page title |
 | Flipping Word Swap | Home hero — the fabric word in the intro sentence (SELVEDGE DENIM ⇄ RAW DENIM, flips per-character on hover/tap). Spacing note: the component centers its stacked words in a box sized to the wider word, which pooled space around the resting word and detached the following comma — so the flip word is deliberately narrower than the resting word, and a `.flip-inline` glue rule in index.css left-aligns the character rows. Replaced Text Morph on 2026-11-13 at the user's request; Text Morph removed. |
-| Sticky Scroll Cards | Home brand-story stack |
+| Sticky Scroll Cards | Home brand-story stack. Layout glue trims its as-shipped dead space (≈550vh of track for 4 cards): padding cut via its className hook, stage height and card offset trimmed by `.story-stack` rules in index.css, story text column sticky. |
 | Case Study Flip Stack | Home editorial "Field Notes" section |
 | Hover Transition | Product cards — default/hover image swap (Shop, Related) |
 | Layered Stack | Cart drawer empty state |

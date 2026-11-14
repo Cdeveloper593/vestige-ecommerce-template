@@ -42,6 +42,17 @@ body { background: var(--ink); color: var(--bone); font-family: Archivo, Helveti
    is also narrower than the resting word, so the box hugs SELVEDGE DENIM. */
 .flip-inline > span > span { justify-content: flex-start; }
 
+/* Sticky Scroll Cards (brand story) — dead-space trim.
+   As shipped, the component pads its scroll track with 50vh top / 100vh
+   bottom and gives every card a 100vh stage — roughly 550vh of scrolling
+   for 4 cards — and in the two-column story layout the text column scrolled
+   away, leaving a void beside the pinned cards. Trimmed here and in
+   Home.tsx: padding cut via the component's className hook, stage height
+   reduced, the cards' downward offset removed, and the story text column
+   made sticky so it stays beside the stack. */
+.story-stack main > section { height: 80vh; }
+.story-stack main figure { top: 0 !important; }
+
 /* Cart drawer — layout glue (transform only) */
 .drawer { transition: transform .45s cubic-bezier(.32,.72,0,1); }
 .scrim { transition: opacity .35s ease; }
