@@ -98,6 +98,7 @@ export default function Home() {
           <Carousel
             items={featured.map((p) => ({ id: p.slug, image: p.images[0], alt: p.name, title: p.name, description: `${money(p.price)} — ★ ${p.rating} (${p.reviewCount})` }))}
             baseWidth={320} aspectRatio={0.85} arrows indicator="dots" theme="dark" pauseOnHover loop
+            className="mx-auto"
           />
         </AnimatedContent>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">

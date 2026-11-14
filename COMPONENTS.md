@@ -294,3 +294,22 @@ genuine finding. Method and raw reports: `~/workspace/tools/pw/qa*-vestige.mjs`,
   per-route Open Graph would need SSR.
 - The unused AnimatedList source remains in the GitHub tree (snapshot pushes
   cannot delete files) — see item 20. It is imported nowhere.
+
+## Follow-up fix — Featured carousel centering (2026-11-14)
+
+User screenshot: in Home's "FEATURED REMAINS" section the React Bits Carousel
+sat hard against the left edge of the max-w-7xl container, leaving the rest of
+the row empty on desktop. Root cause: the Carousel root renders at
+`width: 100%` capped by its `maxWidth` (= `baseWidth`, 320px) with no auto
+margins, inside the full-width AnimatedContent wrapper — a capped block with
+no centering glue aligns left. Measured before (Playwright, 1440px): carousel
+left gap 0px / right gap 912px; at 390px: 0px / 38px.
+
+Fix (layout glue only, via the component's own `className` prop — no library
+source edited): `className="mx-auto"` on the Carousel in `src/pages/Home.tsx`.
+Measured after: 1440px gaps 456px / 456px (carousel dead-center), 390px gaps
+19px / 19px, no horizontal overflow at either width (scrollWidth ==
+clientWidth), next-arrow click still advances the slide (Relic Leather Jacket
+→ Monolith Wool Coat), zero page errors. The viewport-gated/lazy mounting from
+the QA pass is untouched (Carousel is statically imported in Home and renders
+above the LazyVisible sections, as before).
