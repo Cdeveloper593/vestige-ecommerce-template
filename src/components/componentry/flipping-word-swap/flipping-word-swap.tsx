@@ -79,6 +79,29 @@ export function FlippingWordSwap({
         transformOrigin: "center bottom",
       });
 
+      // Fit the container to the *displayed* word, not the wider one.
+      // As shipped, the stacked-words box is sized by the wider word, so
+      // when the narrower word shows, the space between it and whatever
+      // follows inline (e.g. a comma) pools inside the box and the
+      // punctuation detaches. Measure each word's natural width from its
+      // character spans and animate the container width alongside the flip.
+      const rowWidth = (chars: HTMLElement[]) => {
+        if (!chars.length) return 0;
+        const row = chars[0].parentElement;
+        const gap = row
+          ? parseFloat(getComputedStyle(row).columnGap) || 0
+          : 0;
+        return (
+          chars.reduce((sum, c) => sum + c.offsetWidth, 0) +
+          gap * (chars.length - 1)
+        );
+      };
+      const widthFirst = rowWidth(firstWord);
+      const widthSecond = rowWidth(secondWord);
+      gsap.set(containerRef.current, {
+        width: swappedRef.current ? widthSecond : widthFirst,
+      });
+
       const timeline = gsap.timeline({ paused: true });
       timeline
         .to(firstWord, {
@@ -100,11 +123,66 @@ export function FlippingWordSwap({
           `<${resolvedDuration * 0.62}`,
         );
 
+      // Width follows the flip: shrink/grow starts once the outgoing word
+      // is mostly rotated away and runs through the incoming word settling.
+      // Reversing the timeline reverses the width with it.
+      if (Math.abs(widthFirst - widthSecond) > 0.5) {
+        const total = timeline.duration();
+        timeline.to(
+          containerRef.current,
+          {
+            // Function-based so a resize/font swap re-measures the target
+            // when the tween next plays from the resting state.
+            width: () => rowWidth(secondWord),
+            duration: total * 0.55,
+            ease: "power2.inOut",
+          },
+          total * 0.45,
+        );
+      }
+
       if (swappedRef.current) timeline.progress(1);
       timelineRef.current = timeline;
     }, containerRef);
 
+    // Font swaps and breakpoint font-size changes alter the natural word
+    // widths — re-measure and re-fit the resting width when they happen.
+    // Skipped mid-flip: the timeline owns the width while it runs.
+    const refit = () => {
+      const container = containerRef.current;
+      if (!container || timelineRef.current?.isActive()) return;
+      const charsOf = (layer: string) =>
+        Array.from(
+          container.querySelectorAll<HTMLElement>(
+            `[data-flip-word="${layer}"]`,
+          ),
+        );
+      const widthOf = (chars: HTMLElement[]) => {
+        if (!chars.length) return 0;
+        const row = chars[0].parentElement;
+        const gap = row
+          ? parseFloat(getComputedStyle(row).columnGap) || 0
+          : 0;
+        return (
+          chars.reduce((sum, c) => sum + c.offsetWidth, 0) +
+          gap * (chars.length - 1)
+        );
+      };
+      gsap.set(container, {
+        width: swappedRef.current
+          ? widthOf(charsOf("second"))
+          : widthOf(charsOf("first")),
+      });
+    };
+    window.addEventListener("resize", refit);
+    let cancelled = false;
+    document.fonts?.ready.then(() => {
+      if (!cancelled) refit();
+    });
+
     return () => {
+      cancelled = true;
+      window.removeEventListener("resize", refit);
       timelineRef.current = null;
       context.revert();
     };

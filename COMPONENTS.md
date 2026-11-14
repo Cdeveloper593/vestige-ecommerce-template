@@ -313,3 +313,46 @@ clientWidth), next-arrow click still advances the slide (Relic Leather Jacket
 → Monolith Wool Coat), zero page errors. The viewport-gated/lazy mounting from
 the QA pass is untouched (Carousel is statically imported in Home and renders
 above the LazyVisible sections, as before).
+
+## Follow-up fix — hero flip spacing, both states (2026-11-14)
+
+User screenshot (again): in the hero paragraph the comma still floated —
+"RAW DENIM , cut…" — whenever the *flipped* word was showing, most visibly at
+narrower widths. Root cause: the Flipping Word Swap's stacked-words box is
+sized by the wider word (SELVEDGE DENIM) and never changed size. The earlier
+fixes (word2 = RAW DENIM, `.flip-inline` left-align) verified only the
+*resting* state at desktop: at rest the left-aligned wider word fills the box
+so its comma sits tight, but in the flipped state the narrower RAW DENIM left
+~50–56px of empty box between its last glyph and the comma.
+
+Fix (in the copied component source,
+`src/components/componentry/flipping-word-swap/flipping-word-swap.tsx`): the
+component now measures each word's natural width from its character spans and
+animates the container width alongside the flip (width tween starts once the
+outgoing word is mostly rotated away; reversing the flip reverses the width;
+a resize/font-ready refit re-measures the resting width). Both words and the
+hover/tap interaction are unchanged.
+
+Measured settled gaps between the displayed word's last glyph and the comma
+(Playwright, real browser; "before" derived from the old box widths — the box
+stayed at the wider word's width, so the flipped gap ≈ box − word width):
+
+| Width | Rest before → after | Flipped before → after |
+|---|---|---|
+| 390px | 1.4px → 1.4px | ~50px → 1.2px |
+| 600px | 1.4px → 1.4px | ~50px → 1.2px |
+| 768px | 0.2px → 0.2px | ~56px → 0.3px |
+| 1440px | 0.2px → 0.2px | ~56px → 0.3px |
+
+Box widths confirm the mechanism: 147px → 97px (390/600px) and 164px → 108px
+(768/1440px) between rest and flipped. Zoomed crops of both states at 390/600/
+1440px verified visually ("RAW DENIM," — comma attached, including when the
+word wraps onto its own line at 390px); flip animation still plays in both
+directions; no horizontal overflow at any width (scrollWidth == clientWidth);
+no page errors (the only console entry is the sandbox browser failing to
+reach Google Fonts — ERR_TUNNEL_CONNECTION_FAILED — a test-environment
+artefact, not a site error). Known edge, stated plainly: with a *mouse*
+hover at exactly the ~600px wrap boundary, the shrinking word can jump lines
+out from under a stationary cursor mid-animation, which drops the hover and
+reverses the flip; the settled flipped state (tap/click, or hover anywhere
+the word doesn't cross a wrap boundary) measures 1.2px as tabled.
