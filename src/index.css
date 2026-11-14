@@ -35,6 +35,13 @@ body { background: var(--ink); color: var(--bone); font-family: Archivo, Helveti
 .ph { background: #1c1c1c; overflow: hidden; }
 .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
+/* Flipping Word Swap, inline in the hero sentence — alignment glue.
+   The component centers its stacked words in a box sized to the wider word;
+   centered, the visible word pooled space on both sides and detached the
+   comma after it. Left-align the character rows; the flip word (RAW DENIM)
+   is also narrower than the resting word, so the box hugs SELVEDGE DENIM. */
+.flip-inline > span > span { justify-content: flex-start; }
+
 /* Cart drawer — layout glue (transform only) */
 .drawer { transition: transform .45s cubic-bezier(.32,.72,0,1); }
 .scrim { transition: opacity .35s ease; }

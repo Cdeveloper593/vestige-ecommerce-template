@@ -40,7 +40,7 @@ export default function Home() {
             </h1>
             <p className="mt-6 max-w-md text-sand text-base sm:text-lg">
               Dark editorial clothing built to outlast trends —{' '}
-              <FlippingWordSwap word1="SELVEDGE DENIM" word2="BRUSHED COTTON" className="text-bone font-semibold" toClassName="text-vermilion font-semibold" />
+              <FlippingWordSwap word1="SELVEDGE DENIM" word2="RAW DENIM" className="flip-inline text-bone font-semibold" toClassName="text-vermilion font-semibold" />
               , cut in limited runs, stripped of logos.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
