@@ -356,3 +356,58 @@ hover at exactly the ~600px wrap boundary, the shrinking word can jump lines
 out from under a stationary cursor mid-animation, which drops the hover and
 reverses the flip; the settled flipped state (tap/click, or hover anywhere
 the word doesn't cross a wrap boundary) measures 1.2px as tabled.
+
+## Corrective fix — hero flip spacing, structural (2026-11-14, supersedes the animated-width fix above)
+
+The animated-width fix in the previous section is **reverted**. Its settled
+states measured perfectly, but the user sent a screen recording of the live
+hero showing what settled-state measurements cannot see: *during* each flip
+the sentence garbled — the two words' characters overlapped/interleaved into
+hybrids ("RELV EDGE DENIM", "RAW D—E DENIM") and the whole hero block (CTA
+buttons, stats) visibly jumped/ghosted as the paragraph re-wrapped. Root
+cause: the width tween changed the inline container's width inside a
+wrapping paragraph, so every frame of the flip re-flowed the line, dragged
+the character rows sideways, and shifted everything below the paragraph.
+For a hover-driven effect, mid-animation *is* the experience — the fix
+optimised the wrong thing.
+
+Corrective fix (structural, no width animation anywhere):
+
+1. **Component reverted byte-identically** to its pre-57890b3e form (fixed
+   box sized by the wider word, per-character rotationX flip; blob SHA
+   8e253c2d… matches the 78308173 version read back from GitHub). The width
+   measurement, the width tween, the `gsap.set` width, and the
+   resize/font-ready refit are all gone. The `.flip-inline` left-align glue
+   in index.css stays, so characters flip in place.
+2. **Hero sentence restructured** (`src/pages/Home.tsx`) so the flip word is
+   the *last* element of the sentence and the trailing period is part of the
+   flipped words — the fixed box's spare width now trails at the end of the
+   final line, where nothing follows it, so no punctuation or word can ever
+   detach and the box can never disturb the flow of following content:
+   "Dark editorial clothing built to outlast trends — cut in limited runs,
+   stripped of logos, always **SELVEDGE DENIM.** ⇄ **RAW DENIM.**"
+
+Verification (Playwright, localhost:3900; 31 samples per width spanning
+full flip-out and flip-back cycles — the regression test the animated-width
+fix failed in spirit):
+
+| Width | CTA boxes dev | Stats dev | Para lines | Para height dev | Flip-box width | Char left-edge dev |
+|---|---|---|---|---|---|---|
+| 390px | 0px | 0px | 3 (constant) | 0px | 150.3px const | 0px |
+| 600px | 0px | 0px | 3 (constant) | 0px | 150.3px const | 0px |
+| 768px | 0px | 0px | 3 (constant) | 0px | 169px const | 0px |
+| 1440px | 0px | 0px | 3 (constant) | 0px | 169px const | 0px |
+
+Zero console/page errors (excluding the sandbox browser's Google Fonts
+tunnel failure, a test-environment artefact); no horizontal overflow;
+flip state cycles rest → flipped → rest correctly at every width. A
+transform probe confirms characters animate as pure rotationX (translation
+terms 0 throughout). Burst screenshots at 1440px catch the flip mid-flight:
+the incoming word reads cleanly, and the only remnant is the outgoing
+word's tail characters ("ENIM." of the longer SELVEDGE DENIM.) rotating
+away in their own positions beyond the shorter word's right edge — the
+component's designed stagger with unequal-length words, not interleaving.
+Note: an earlier probe script's per-character line-count heuristic
+reported phantom "line changes" mid-flip; that was a measurement artefact
+(transformed character spans fragment Range rects), disproven by paragraph
+height and every dependent box measuring 0px deviation.

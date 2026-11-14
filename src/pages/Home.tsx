@@ -61,9 +61,8 @@ export default function Home() {
               <span className="text-vermilion block"><KineticTextReveal text="REMAINS" splitBy="characters" blur /></span>
             </h1>
             <p className="mt-6 max-w-md text-sand text-base sm:text-lg">
-              Dark editorial clothing built to outlast trends —{' '}
-              <FlippingWordSwap word1="SELVEDGE DENIM" word2="RAW DENIM" className="flip-inline text-bone font-semibold" toClassName="text-vermilion font-semibold" />
-              , cut in limited runs, stripped of logos.
+              Dark editorial clothing built to outlast trends — cut in limited runs, stripped of logos, always{' '}
+              <FlippingWordSwap word1="SELVEDGE DENIM." word2="RAW DENIM." className="flip-inline text-bone font-semibold" toClassName="text-vermilion font-semibold" />
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/shop" className="btn-primary">Shop the drop</Link>
