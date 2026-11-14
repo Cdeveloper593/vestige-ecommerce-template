@@ -27,7 +27,7 @@ Animation dependencies of those components (motion, framer-motion, gsap, @gsap/r
 
 | Component | Where it appears |
 |---|---|
-| PillNav | Global header navigation |
+| Burger menu (native) | Global header navigation — three-line toggle folding to an X, dropdown panel with Home / Shop / Checkout + category links. Native button/nav: neither library ships a plain three-line burger toggle (their navs are pill/text toggles). Replaced React Bits PillNav on 2026-11-13 at the user's request; PillNav removed. |
 | SplitText | Home "Featured Remains" heading |
 | BlurText | Shop and Checkout page headings |
 | ScrollReveal | Home story copy; Product description |
@@ -59,7 +59,7 @@ Animation dependencies of those components (motion, framer-motion, gsap, @gsap/r
 3. **Componentry "Wheel Carousel"** — depends on `next-themes` (Next.js-only) in a Vite project → category browsing uses **React Bits MagicBento** + native category buttons on Shop.
 4. **Componentry "Image Ripple Effect"** — requires @react-three/fiber/drei WebGL; dropped for performance and reduced-motion safety → product gallery uses **React Bits Stack**.
 5. **Componentry "Orbit Card Stack" / "Signature" / "Scroll Tilted Grid"** — not used; reviews use **React Bits CardSwap**, footer sign-off is typographic inside **Closing Plasma**. Fewer, stronger components over component tourism.
-6. **React Bits "StaggeredMenu"** — its fixed full-screen scope conflicts with the sticky PillNav header → mobile navigation is **PillNav** (scrollable) + **Componentry Magnetic Dock**.
+6. **React Bits "StaggeredMenu"** — its fixed full-screen scope conflicts with the sticky header → navigation was originally **PillNav** + **Componentry Magnetic Dock**; since 2026-11-13 the header uses the native burger menu above (user request) and PillNav is removed.
 
 ## The native-HTML gap (honest note)
 
